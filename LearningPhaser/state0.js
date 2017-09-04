@@ -2,32 +2,55 @@ var demo = {};
 var centerX = 1280 / 2;
 var centerY = 900 / 2;
 var steve;
-var speed = 6;
+var speed = 5;
 
 demo.state0 = function () {};
 demo.state0.prototype = {
     preload: function () {
-        game.load.image('steve', 'assets/sprites/SteveRunning1.png');
+        game.load.spritesheet('steve', 'assets/spritesheets/steve_sheet.png', 270, 280);
+        game.load.image('background', 'assets/backgrounds/dirt_path.png');
     },
     create: function () {
+        game.physics.startSystem(Phaser.Physics.ARCADE);
         game.stage.backgroundColor = '#adfff2';
         console.log('state0');
         addChangeStateEventListeners();
+        game.world.setBounds(0, 0, 1800, 900);
         game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 
+        var dirtPath = game.add.sprite(0, 0, 'background');
         steve = game.add.sprite(centerX, centerY, 'steve');
         steve.anchor.setTo(0.5, 0.5);
+        steve.scale.setTo(0.5, 0.5);
+        game.physics.enable(steve);
+        steve.body.collideWorldBounds = true;
+        steve.animations.add('run', [0, 1]);
+
+        game.camera.follow(steve);
+        game.camera.deadzone = new Phaser.Rectangle(centerX - 200, 0, 400, 900);
     },
     update: function () {
         if (game.input.keyboard.isDown(Phaser.Keyboard.D)) {
+            steve.scale.setTo(0.5, 0.5);
             steve.x += speed;
+            steve.animations.play('run', 5, true);
         } else if (game.input.keyboard.isDown(Phaser.Keyboard.A)) {
+            steve.scale.setTo(-0.5, 0.5);
             steve.x -= speed;
+            steve.animations.play('run', 5, true);
+        } else {
+            steve.animations.stop('run');
+            steve.frame = 0;
         }
         if (game.input.keyboard.isDown(Phaser.Keyboard.W)) {
             steve.y -= speed;
+            steve.animations.play('run', 5, true);
+            if (steve.y < 400) {
+                steve.y = 400;
+            }
         } else if (game.input.keyboard.isDown(Phaser.Keyboard.S)) {
             steve.y += speed;
+            steve.animations.play('run', 5, true);
         }
     }
 };
