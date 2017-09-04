@@ -1,14 +1,35 @@
 var demo = {};
+var centerX = 1280 / 2;
+var centerY = 900 / 2;
+var steve;
+var speed = 6;
+
 demo.state0 = function () {};
 demo.state0.prototype = {
-    preload: function () {},
-    create: function () {
-        game.stage.backgroundColor = 'ffffff';
-        console.log('state0');
-
-        addChangeStateEventListeners();
+    preload: function () {
+        game.load.image('steve', 'assets/sprites/SteveRunning1.png');
     },
-    update: function () {}
+    create: function () {
+        game.stage.backgroundColor = '#adfff2';
+        console.log('state0');
+        addChangeStateEventListeners();
+        game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+
+        steve = game.add.sprite(centerX, centerY, 'steve');
+        steve.anchor.setTo(0.5, 0.5);
+    },
+    update: function () {
+        if (game.input.keyboard.isDown(Phaser.Keyboard.D)) {
+            steve.x += speed;
+        } else if (game.input.keyboard.isDown(Phaser.Keyboard.A)) {
+            steve.x -= speed;
+        }
+        if (game.input.keyboard.isDown(Phaser.Keyboard.W)) {
+            steve.y -= speed;
+        } else if (game.input.keyboard.isDown(Phaser.Keyboard.S)) {
+            steve.y += speed;
+        }
+    }
 };
 
 function changeState(i, stateNum) {
