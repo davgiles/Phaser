@@ -1,14 +1,15 @@
 // Create our 'main' state that will contain the game
 var mainState = {
-    preload: function () {
+    preload() {
         // This function will be executed at the beginning
         // That's where we load the images and sounds
 
         game.load.image('bird', 'assets/bird.png');
         game.load.image('pipe', 'assets/pipe.png');
+        game.load.audio('jump', 'assets/jump.wav');
     },
 
-    create: function () {
+    create() {
         // This function is called after the preload function
         // Here we set up the game, display sprites, etc.
 
@@ -20,6 +21,8 @@ var mainState = {
 
         // display bird at position x=100 and y=245
         this.bird = game.add.sprite(100, 245, 'bird');
+
+        this.bird.anchor.setTo(-0.2, 0.5);
 
         // add physics to the bird
         // needed for movement, gravity, collisions, etc.
@@ -41,9 +44,11 @@ var mainState = {
             font: "30px Arial",
             fill: "#ffffff"
         });
+
+        this.jumpSound = game.add.audio('jump');
     },
 
-    update: function () {
+    update() {
         // This function is called 60 times per second
         // It contains the game's logic
 
@@ -52,22 +57,43 @@ var mainState = {
             this.restartGame()
         }
 
-        game.physics.arcade.overlap(this.bird, this.pipes, this.restartGame, null, this);
+        game.physics.arcade.overlap(this.bird, this.pipes, this.hitPipe, null, this);
+
+        // tilts bird downward
+        if (this.bird.angle < 20) {
+            this.bird.angle += 1;
+        }
     },
 
     // make the bird jump
-    jump: function () {
+    jump() {
+        if (this.bird.alive == false) {
+            return;
+        }
+
         // add a vertical velocity to the bird
         this.bird.body.velocity.y = -350;
+
+        this.jumpSound.play();
+
+        // Create an animation on the bird
+        // var animation = game.add.tween(this.bird); 
+        // Change the angle of the bird to -20 degrees in 100 milliseconds
+        // animation.to({angle: -20}, 100);
+        // Start animation
+        // animation.start();
+        game.add.tween(this.bird).to({
+            angle: -20
+        }, 100).start();
     },
 
     // restart the game
-    restartGame: function () {
+    restartGame() {
         // start the 'main' state, which restarts the game
         game.state.start('main');
     },
 
-    addOnePipe: function (x, y) {
+    addOnePipe(x, y) {
         // Create a pipe at the position of x and y
         var pipe = game.add.sprite(x, y, 'pipe');
 
@@ -85,7 +111,7 @@ var mainState = {
         pipe.outOfBoundsKill = true;
     },
 
-    addRowOfPipes: function () {
+    addRowOfPipes() {
         // Randomly pick a number between 1 and 5
         // This will be the hole position
         var hole = Math.floor(Math.random() * 5) + 1;
@@ -99,6 +125,23 @@ var mainState = {
         }
         this.score += 1;
         this.labelScore.text = this.score;
+    },
+
+    hitPipe() {
+        if (this.bird.alive == false) {
+            return;
+        }
+
+        // set the alive property of bird to false
+        this.bird.alive = false;
+
+        // prevent new pipes from appearing
+        game.time.events.remove(this.timer);
+
+        // go thru all pipes and stop their movement
+        this.pipes.forEach(function (p) {
+            p.body.velocity.x = 0;
+        }, this);
     }
 };
 
