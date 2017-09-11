@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Steve</title>
+    <script src="phaser.min.js"></script>
+    <style>
+        * {
+            background-color: gray;
+            margin: 0;
+            padding: 0;
+        }
+
+    </style>
+</head>
+
+<body>
+    <script>
+        var game = new Phaser.Game(1024, 768, Phaser.AUTO);
+
+        var menuState = {
+            preload: function() {
+
+            },
+
+            create: function() {
+
+            },
+
+            update: function() {
+
+            }
+        };
+
+        var gameState = {
+            preload: function() {
+                game.load.spritesheet('steve', 'steve.png', 30, 58);
+            },
+
+            create: function() {
+                game.physics.startSystem(Phaser.Physics.ARCADE);
+                game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+                
+                this.steve = game.add.sprite(game.world.centerX, game.world.height - 100, 'steve');
+                this.steve.anchor.set(0.5);
+                game.physics.enable(this.steve);
+                this.steve.body.gravity.y = 900;
+                this.steve.body.bounce.y = 0.2;
+                this.steve.body.drag.x = 2000;
+                this.steve.body.collideWorldBounds = true;
+                
+                this.steve.animations.add('walk', [1, 2, 3, 2], 4, true);
+                
+                this.cursors = game.input.keyboard.createCursorKeys();
+                
+                this.PLAYER_VELOCITY = 250;
+            },
+
+            update: function() {
+                if (this.cursors.left.isDown) {
+                    this.steve.scale.set(-1, 1);
+                    this.steve.animations.play('walk');
+                    this.steve.body.velocity.x = -this.PLAYER_VELOCITY;
+                } else if (this.cursors.right.isDown) {
+                    this.steve.scale.set(1, 1);
+                    this.steve.animations.play('walk');
+                    this.steve.body.velocity.x = this.PLAYER_VELOCITY;
+                } else {
+                    this.steve.animations.stop('walk');
+                    this.steve.frame = 0;
+                    this.steve.body.velocity.x = 0;
+                }
+                if (this.cursors.up.isDown && this.steve.body.onFloor()) {
+                    this.steve.body.velocity.y = -400;
+                }
+            }
+        };
+
+        game.state.add('menu', menuState);
+        game.state.add('game', gameState);
+        game.state.start('game');
+
+    </script>
+</body>
+
+</html>
