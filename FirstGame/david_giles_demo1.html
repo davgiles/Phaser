@@ -17,7 +17,7 @@
 
 <body>
     <script>
-        var game = new Phaser.Game(800, 640, Phaser.AUTO);
+        var game = new Phaser.Game(600, 500, Phaser.AUTO);
 
         var menuState = {
             preload: function() {
@@ -33,17 +33,21 @@
             }
         };
 
+        var SPEED = 200;
+        var JUMP_HEIGHT = 420;
+        
         var gameState = {
             preload: function() {
                 game.load.tilemap('level1', 'level1.json', null, Phaser.Tilemap.TILED_JSON);
                 game.load.image('grassTileset', 'grassTileset.png');
-                game.load.spritesheet('steve', 'steve.png', 28, 58);
+                game.load.spritesheet('steve', 'steve.png', 15, 29);
                 game.load.spritesheet('coin', 'coin.png', 16, 16);
             },
 
             create: function() {
                 game.physics.startSystem(Phaser.Physics.ARCADE);
                 game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+                game.world.setBounds(0, 0, 800, 640);
                 
                 // add tilemap and tilesets to game
                 this.map = game.add.tilemap('level1');
@@ -53,15 +57,20 @@
                 this.mapSky = this.map.createLayer('sky');
                 this.mapGround = this.map.createLayer('ground');
                 this.mapPlatforms = this.map.createLayer('platforms');
-                this.mapCollectables = this.map.createLayer('collectables');
+                
+                // add collectable coins to game
+                this.coins = game.add.group();
+                this.coins.enableBody = true;                
+                this.map.createFromObjects('collectables', 15, 'coin', 0, true, false, this.coins);                
+                this.coins.callAll('animations.add', 'animations', 'spin', [0, 1, 2, 3, 4, 5], 6, true);
+                this.coins.callAll('animations.play', 'animations', 'spin');
                 
                 // add collision for tilemap
-                this.map.setCollisionBetween(1, 11, true, 'ground');
-                this.map.setCollisionBetween(25, 28, true, 'platforms');
+                this.map.setCollisionBetween(1, 30, true, 'ground');
+                this.map.setCollisionBetween(1, 30, true, 'platforms');
                 
                 // add player 'steve' to game
                 this.player = game.add.sprite(50, game.world.centerY, 'steve');
-                this.player.scale.setTo(0.5, 0.5);
                 this.player.anchor.setTo(0.5);
                 // enable physics for player
                 game.physics.enable(this.player);
@@ -72,17 +81,10 @@
                 // add player animations
                 this.player.animations.add('walk', [1, 2, 3, 2], 5, true);
                 
-                // add collectable coins to game
-                this.coins = game.add.group();
-                this.coins.enableBody = true;                
-                this.map.createFromObjects('collectables', 15, 'coin', 0, true, false, this.coins);                
-                this.coins.callAll('animations.add', 'animations', 'spin', [0, 1, 2, 3, 4, 5, 6, 7, 8], 6, true);
-                this.coins.callAll('animations.play', 'animations', 'spin');
-                
                 // create cursor keys for basic controls
                 this.cursors = game.input.keyboard.createCursorKeys();
                 
-                this.PLAYER_VELOCITY = 200;
+                game.camera.follow(this.player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
             },
 
             update: function() {
@@ -93,20 +95,20 @@
                 
                 // basic controls for player, LEFT and RIGHT for horizontal movement, UP to jump
                 if (this.cursors.left.isDown) {
-                    this.player.scale.setTo(-0.5, 0.5);
+                    this.player.scale.setTo(-1, 1);
                     this.player.animations.play('walk');
-                    this.player.body.velocity.x = -this.PLAYER_VELOCITY;
+                    this.player.body.acceleration.x = -SPEED;
                 } else if (this.cursors.right.isDown) {
-                    this.player.scale.setTo(0.5, 0.5);
+                    this.player.scale.setTo(1, 1);
                     this.player.animations.play('walk');
-                    this.player.body.velocity.x = this.PLAYER_VELOCITY;
+                    this.player.body.acceleration.x = SPEED;
                 } else {
                     this.player.animations.stop('walk');
                     this.player.frame = 0;
-                    this.player.body.velocity.x = 0;
+                    this.player.body.acceleration.x = 0;
                 }
                 if (this.cursors.up.isDown && this.player.body.onFloor()) {
-                    this.player.body.velocity.y = -300;
+                    this.player.body.velocity.y = -JUMP_HEIGHT;
                 }
             },
             
