@@ -25,6 +25,7 @@ demo.state8.prototype = {
             fill: fill,
             font: font
         });
+        
         var currentLine = game.add.text(10, 10, '', {
             fontSize: fontSize + 'px',
             fill: fill,
